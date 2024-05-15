@@ -11,18 +11,10 @@
 
 <script setup lang="ts">
 import { defineModel, ref } from 'vue';
-import {errors, isInvalid, hasError, validateField, validateField as validateFormField} from '@/Utils/validation';
+import {errors, isInvalid, hasError, validateField} from '@/Utils/validation';
 import type {ValidationRules} from "@/Utils/validation";
 
-const formData = defineModel({
-  nome: '',
-  // Altri campi di input
-});
-
-/*const errors = ref<{ [key: string]: string | null }>({
-  nome: null,
-  // Altri campi di input
-});*/
+const formData = defineModel();
 
 // Regole di validazione specifiche per Form2
 const validationRules: ValidationRules = {
@@ -43,12 +35,4 @@ function validateFormField(fieldName: string): void {
 
 }
 
-
-/*function isInvalid(fieldName: string): boolean {
-  return !!errors.value[fieldName];
-}
-
-function hasError(fieldName: string): boolean {
-  return isInvalid(fieldName) && errors.value[fieldName] !== null;
-}*/
 </script>
