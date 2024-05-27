@@ -1,217 +1,267 @@
-Documentazione di Utilizzo di Validation
+* * *
 
-Documentazione di Utilizzo di Validation
-========================================
+# VValidate
 
-Descrizione
------------
+La classe `VValidate` offre funzionalità per la validazione dei campi di un modulo.
 
-La classe `Validation` fornisce un sistema per validare i campi di un modulo secondo criteri specifici.
+## Costruttore
 
-Utilizzo
---------
+`constructor(config?: VValidateConfig)`
 
-### Importazione
+Costruisce un'istanza di `VValidate` con opzioni di configurazione opzionali.
 
-Per utilizzare la classe `Validation` in un modulo Vue, è necessario importarla come segue:
+## Parametri:
 
-    <script setup>
-    import Validation, { generateRules, validateForm, validateFormField } from '~/path/to/Validation';
-    </script>
+*   `config?: VValidateConfig`: Configurazione opzionale per la validazione.
 
+* * *
 
-### Creazione di un'istanza
+## Metodi Pubblici
 
-È possibile creare un'istanza della classe `Validation` nel componente Vue:
+##### `setValidationRules(validationRules?: ValidationRules, asyncValidationRules?: AsyncValidationRules): void`
 
-    <script setup>
-    const validationInstance = new Validation();
-    </script>
+Imposta le regole di validazione sincrone e asincrone.
 
+Esempio:
 
-### Definizione delle Regole di Validazione
+`const validator = new VValidate(); validator.setValidationRules({   username: [     { validator: validator.validators.required(), message: 'Il nome utente è obbligatorio.' },     { validator: validator.validators.min(3), message: 'Il nome utente deve contenere almeno 3 caratteri.' }   ] });`
 
-È possibile definire le regole di validazione per ciascun campo del modulo utilizzando il metodo `generateRules`:
+##### `generateAsyncRules(rules: { [key: string]: any }): AsyncValidationRule[]`
 
-    <script setup>
-    const rules = {
-      username: generateRules({ required: true, min: 3, max: 20 }),
-      email: generateRules({ required: true, email: true }),
-      password: generateRules({ required: true, min: 6 }),
-      confirmPassword: generateRules({ required: true, confirmed: 'password' })
-    };
-    </script>
+Genera le regole di validazione asincrone.
 
+Esempio:
 
-### Validazione del Modulo
+`const validator = new VValidate(); const asyncRules = validator.generateAsyncRules({   uniqueUsername: 'Il nome utente è già in uso.' });`
 
-È possibile eseguire la validazione del modulo chiamando il metodo `validateForm`:
+##### `generateRules(rules: { [key: string]: any }): ValidationRule[]`
 
-    <script setup>
-    const handleSubmit = () => {
-      const isValid = validateForm(formData, rules);
-      if (isValid) {
-        // Invia il modulo
-      } else {
-        // Gestisci gli errori di validazione
-      }
-    };
-    </script>
+Genera le regole di validazione sincrone.
 
+Esempio:
 
-### Visualizzazione degli Errori di Validazione
+`const validator = new VValidate(); const rules = validator.generateRules({   username: [     { validator: validator.validators.required(), message: 'Il nome utente è obbligatorio.' },     { validator: validator.validators.min(3), message: 'Il nome utente deve contenere almeno 3 caratteri.' }   ] });`
 
-Per visualizzare gli errori di validazione, è possibile utilizzare il metodo `getErrors`:
+##### `validateFormFieldWithRules(fieldName: string, formData: any, validationRules: ValidationRules, asyncValidationRules?: AsyncValidationRules | null): Promise<void>`
 
-    <script setup>
-    const errors = getErrors();
-    </script>
+Valida un singolo campo del modulo con le regole specificate.
 
+Esempio:
 
-Esempio Completo
-----------------
+`const validator = new VValidate(); await validator.validateFormFieldWithRules('username', formData, validationRules, asyncValidationRules);`
 
-    <template>
-      <form @submit.prevent="handleSubmit">
-        <input type="text" v-model="formData.username">
-        <span v-if="errors.username">{{ errors.username }}</span>
-    
-        <input type="email" v-model="formData.email">
-        <span v-if="errors.email">{{ errors.email }}</span>
-    
-        <input type="password" v-model="formData.password">
-        <span v-if="errors.password">{{ errors.password }}</span>
-    
-        <input type="password" v-model="formData.confirmPassword">
-        <span v-if="errors.confirmPassword">{{ errors.confirmPassword }}</span>
-    
-        <button type="submit">Invia</button>
-      </form>
-    </template>
-    
-    <script setup>
-    import { ref } from 'vue';
-    import Validation, { generateRules, validateForm, getErrors } from '~/path/to/Validation';
-    
-    const validationInstance = new Validation();
-    
-    const formData = ref({
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    });
-    
-    const rules = {
-      username: generateRules({ required: true, min: 3, max: 20 }),
-      email: generateRules({ required: true, email: true }),
-      password: generateRules({ required: true, min: 6 }),
-      confirmPassword: generateRules({ required: true, confirmed: 'password' })
-    };
-    
-    const handleSubmit = () => {
-      const isValid = validateForm(formData.value, rules);
-      if (isValid) {
-        // Invia il modulo
-      } else {
-        // Gestisci gli errori di validazione
-      }
-    };
-    
-    const errors = getErrors();
-    </script>
+##### `validateFormWithRules(formData: any, validationRules: ValidationRules, asyncValidationRules?: AsyncValidationRules | null): Promise<boolean>`
 
+Valida tutti i campi del modulo con le regole specificate.
 
-## Lista di validatori
-*   **string**
-    *   **Descrizione:** Verifica se il valore è una stringa.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ string: true })`
-*   **number**
-    *   **Descrizione:** Verifica se il valore è un numero.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ number: true })`
-*   **email**
-    *   **Descrizione:** Verifica se il valore è un indirizzo email valido.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ email: true })`
-*   **url**
-    *   **Descrizione:** Verifica se il valore è un URL valido.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ url: true })`
-*   **phone**
-    *   **Descrizione:** Verifica se il valore è un numero di telefono valido.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ phone: true })`
-*   **required**
-    *   **Descrizione:** Verifica se il valore è presente.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ required: true })`
-*   **image**
-    *   **Descrizione:** Verifica se il valore è un'immagine.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ image: true })`
-*   **regex**
-    *   **Descrizione:** Verifica se il valore soddisfa un determinato pattern regolare.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ regex: /pattern/ })`
-*   **size**
-    *   **Descrizione:** Verifica se la dimensione del file è inferiore a una soglia specificata (in KB).
-    *   **Esempio di utilizzo:**  
-        `generateRules({ size: 1024 })`
-*   **confirmed**
-    *   **Descrizione:** Verifica se il valore corrisponde al valore di un altro campo conferma.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ confirmed: 'campoConferma' })`
-*   **min**
-    *   **Descrizione:** Verifica se il valore ha una lunghezza minima specificata.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ min: 5 })`
-*   **max**
-    *   **Descrizione:** Verifica se il valore ha una lunghezza massima specificata.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ max: 10 })`
-*   **between**
-    *   **Descrizione:** Verifica se il valore ha una lunghezza compresa tra due valori specificati.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ between: [5, 10] })`
-*   **one\_of**
-    *   **Descrizione:** Verifica se il valore è incluso in un elenco di valori consentiti.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ one_of: ['valore1', 'valore2', 'valore3'] })`
-*   **not\_one\_of**
-    *   **Descrizione:** Verifica se il valore non è incluso in un elenco di valori non consentiti.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ not_one_of: ['valore1', 'valore2', 'valore3'] })`
-*   **ext**
-    *   **Descrizione:** Verifica se l'estensione del file è inclusa in un elenco di estensioni consentite.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ ext: ['.jpg', '.png', '.gif'] })`
-*   **integer**
-    *   **Descrizione:** Verifica se il valore è un numero intero.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ integer: true })`
-*   **is**
-    *   **Descrizione:** Verifica se il valore è uguale a un valore specificato.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ is: 'valoreConfronto' })`
-*   **is\_not**
-    *   **Descrizione:** Verifica se il valore non è uguale a un valore specificato.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ is_not: 'valoreConfronto' })`
-*   **length**
-    *   **Descrizione:** Verifica se la lunghezza del valore è uguale a una lunghezza specificata.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ length: 5 })`
-*   **max\_value**
-    *   **Descrizione:** Verifica se il valore è minore o uguale a un valore massimo specificato.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ max_value: 10 })`
-*   **min\_value**
-    *   **Descrizione:** Verifica se il valore è maggiore o uguale a un valore minimo specificato.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ min_value: 5 })`
-*   **mimes**
-    *   **Descrizione:** Verifica se il tipo di file è incluso in un elenco di tipi MIME consentiti.
-    *   **Esempio di utilizzo:**  
-        `generateRules({ mimes: ['image/jpeg', 'image/png'] })`
+Esempio:
+
+`const validator = new VValidate(); const isValid = await validator.validateFormWithRules(formData, validationRules, asyncValidationRules);`
+
+##### `validateFormField(fieldName: string, formData: any): Promise<void>`
+
+Valida un singolo campo del modulo.
+
+Esempio:
+
+`const validator = new VValidate(); await validator.validateFormField('username', formData);`
+
+##### `validateField(fieldName: string, value: any): Promise<void>`
+
+Valida un campo.
+
+Esempio:
+
+`const validator = new VValidate(); await validator.validateField('username', value);`
+
+##### `validateForm(formData: any): Promise<boolean>`
+
+Valida tutti i campi del modulo.
+
+Esempio:
+
+`const validator = new VValidate(); const isValid = await validator.validateForm(formData);`
+
+##### `setCallbacks(callbacks: { [key: string]: Function }): void`
+
+Imposta i callback per gli eventi di validazione.
+
+Esempio:
+
+``const validator = new VValidate(); validator.setCallbacks({   onFieldValid: (fieldName: string) => console.log(`Il campo ${fieldName} è valido.`),   onFieldInvalid: (fieldName: string, message: string) => console.error(`Errore nel campo ${fieldName}: ${message}`) });``
+
+##### `isInvalid(fieldName: string): boolean`
+
+Verifica se un campo è non valido.
+
+Esempio:
+
+`const validator = new VValidate(); const isInvalid = validator.isInvalid('username');`
+
+##### `hasError(fieldName: string): boolean`
+
+Verifica se un campo ha un errore specifico.
+
+Esempio:
+
+`const validator = new VValidate(); const hasError = validator.hasError('username');`
+
+##### `getErrors(): { [key: string]: string | null }`
+
+Restituisce tutti gli errori di validazione.
+
+Esempio:
+
+`const validator = new VValidate(); const errors = validator.getErrors();`
+
+##### `getError(fieldName: string): string | null`
+
+Restituisce l'errore di un singolo campo.
+
+Esempio:
+
+`const validator = new VValidate(); const error = validator.getError('username');`
+
+##### `addCustomValidator(name: string, validator: any, message: any): void`
+
+Aggiunge un validatore sincrono personalizzato.
+
+Esempio:
+
+`const validator = new VValidate(); validator.addCustomValidator('customValidator', (value: any) => value === 'example', 'Il valore deve essere "example"');`
+
+##### `addCustomAsyncValidator(name: string, validator: any, message: any): void`
+
+Aggiunge un validatore asincrono personalizzato.
+
+Esempio:
+
+`const validator = new VValidate(); validator.addCustomAsyncValidator('customAsyncValidator', async (value: any) => {   // Simula una chiamata asincrona   return await new Promise<boolean>((resolve) => {     setTimeout(() => {       resolve(value === 'example');     }, 1000);   }); }, 'Il valore deve essere "example"');`
+
+##### `clearError(fieldName: string): void`
+
+Cancella l'errore di un campo specifico.
+
+Esempio:
+
+`const validator = new VValidate(); validator.clearError('username');`
+
+##### `resetErrors(): void`
+
+Resetta tutti gli errori.
+
+Esempio:
+
+`const validator = new VValidate(); validator.resetErrors();`
+
+##### `setOnValidateStart(callback: Function): void`
+
+Imposta la funzione di callback per l'inizio della validazione del campo.
+
+Esempio:
+
+``const validator = new VValidate(); validator.setOnValidateStart((fieldName: string) => console.log(`Inizio validazione campo: ${fieldName}`));``
+
+##### `setOnValidateEnd(callback: Function): void`
+
+Imposta la funzione di callback per la fine della validazione del campo.
+
+Esempio:
+
+``const validator = new VValidate(); validator.setOnValidateEnd((fieldName: string) => console.log(`Fine validazione campo: ${fieldName}`));``
+
+##### `setOnFieldValid(callback: Function): void`
+
+Imposta la funzione di callback per il campo valido.
+
+Esempio:
+
+``const validator = new VValidate(); validator.setOnFieldValid((fieldName: string) => console.log(`Campo valido: ${fieldName}`));``
+
+##### `setOnFieldInvalid(callback: Function): void`
+
+Imposta la funzione di callback per il campo non valido.
+
+Esempio:
+
+``const validator = new VValidate(); validator.setOnFieldInvalid((fieldName: string, message: string) => console.log(`Campo non valido: ${fieldName}. Messaggio: ${message}`));``
+
+##### `getValidators(): { [key: string]: any }`
+
+Restituisce tutti i validatori disponibili.
+
+Esempio:
+
+`const validator = new VValidate(); const validators = validator.getValidators();`
+
+##### `getMessages(): { [key: string]: any }`
+
+Restituisce tutti i messaggi di validazione disponibili.
+
+Esempio:
+
+`const validator = new VValidate(); const messages = validator.getMessages();`
+
+* * *
+
+#### Proprietà
+
+##### `errors: { [key: string]: string | null }`
+
+Oggetto contenente gli errori di validazione per ciascun campo.
+
+##### `messages: { [key: string]: any }`
+
+Oggetto contenente i messaggi di errore personalizzati.
+
+##### `validators: { [key: string]: any }`
+
+Oggetto contenente i validatori di campo.
+
+##### `asyncValidators: { [key: string]: any }`
+
+Oggetto contenente i validatori asincroni di campo.
+
+##### `validationRules: ValidationRules | null`
+
+Regole di validazione sincrone.
+
+##### `asyncValidationRules: AsyncValidationRules | null`
+
+Regole di validazione asincrone.
+
+##### `autoFocus: boolean`
+
+Indica se abilitare il focus automatico sul primo campo non valido.
+
+##### `onValidateStart: Function | null`
+
+Callback per l'inizio della validazione.
+
+##### `onValidateEnd: Function | null`
+
+Callback per la fine della validazione.
+
+##### `onFieldValid: Function | null`
+
+Callback per il campo valido.
+
+##### `onFieldInvalid: Function | null`
+
+Callback per il campo non valido.
+
+##### `firstInvalidField: string | null`
+
+Nome del primo campo non valido.
+
+* * *
+
+### Utilizzo
+
+`import VValidate from 'VValidate';  
+const validator = new VValidate();`
+
+* * *
+
+Questa documentazione fornisce una panoramica delle funzionalità offerte dalla classe `VValidate`, 
+inclusi esempi di utilizzo per ogni metodo e proprietà. Se hai bisogno di ulteriori chiarimenti o hai domande specifiche, non esitare a chiedere!

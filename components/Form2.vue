@@ -1,139 +1,140 @@
-<template>
-  <form @submit.prevent="submitForm">
-    <!-- Text Input -->
-    <div>
-      <label for="textInput">Text Input</label>
-      <input type="text" id="textInput" v-model="formData.textInput" @blur="() => validate('textInput')" />
-      <span v-if="errors.textInput">{{ errors.textInput }}</span>
-    </div>
+<script setup lang="ts">
+import {onMounted, ref} from 'vue';
+import VValidate from '~/Utils/DSValidate/src/VValidate';
 
-    <!-- Email Input -->
-    <div>
-      <label for="emailInput">Email Input</label>
-      <input type="email" id="emailInput" v-model="formData.emailInput" @blur="() => validate('emailInput')" />
-      <span v-if="errors.emailInput">{{ errors.emailInput }}</span>
-    </div>
+const extraMessages = {
+  is_test_async: 'Questo campo deve avere il valore "async"',
+  custom_validator: 'Questo campo deve avere il valore "customValue"'
+};
 
-    <!-- URL Input -->
-    <div>
-      <label for="urlInput">URL Input</label>
-      <input type="url" id="urlInput" v-model="formData.urlInput" @blur="() => validate('urlInput')" />
-      <span v-if="errors.urlInput">{{ errors.urlInput }}</span>
-    </div>option1
+const customValidators = {
+  custom_validator: () => (value: any) => value === 'customValue'
+};
 
-    <!-- Phone Input -->
-    <div>
-      <label for="phoneInput">Phone Input</label>
-      <input type="tel" id="phoneInput" v-model="formData.phoneInput" @blur="() => validate('phoneInput')" />
-      <span v-if="errors.phoneInput">{{ errors.phoneInput }}</span>
-    </div>
+const customAsyncValidators = {
+  is_test_async: async (value: string) => {
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        console.log('resolve is_test_async', value === 'async')
+        resolve(value === 'async');
+      }, 1000);
+    });
+  },
+};
 
-    <!-- Number Input -->
-    <div>
-      <label for="numberInput">Number Input</label>
-      <input type="number" id="numberInput" v-model="formData.numberInput" @blur="() => validate('numberInput')" />
-      <span v-if="errors.numberInput">{{ errors.numberInput }}</span>
-    </div>
-
-    <!-- Select -->
-    <div>
-      <label for="selectInput">Select Input</label>
-      <select id="selectInput" v-model="formData.selectInput" @change="() => validate('selectInput')">
-        <option value="">Select an option</option>
-        <option value="option1">Option 1</option>
-        <option value="option2">Option 2</option>
-      </select>
-      <span v-if="errors.selectInput">{{ errors.selectInput }}</span>
-    </div>
-
-    <!-- Checkbox -->
-    <div>
-      <label for="checkboxInput">Checkbox Input</label>
-      <input type="checkbox" id="checkboxInput" v-model="formData.checkboxInput" @change="() => validate('checkboxInput')" />
-      <span v-if="errors.checkboxInput">{{ errors.checkboxInput }}</span>
-    </div>
-
-    <!-- Radio Buttons -->
-    <div>
-      <label>Radio Input</label>
-      <input type="radio" id="radio1" value="option1" v-model="formData.radioInput" @change="() => validate('radioInput')" />
-      <label for="radio1">Option 1</label>
-      <input type="radio" id="radio2" value="option2" v-model="formData.radioInput" @change="() => validate('radioInput')" />
-      <label for="radio2">Option 2</label>
-      <span v-if="errors.radioInput">{{ errors.radioInput }}</span>
-    </div>
-
-    <!-- File Input -->
-    <div>
-      <label for="fileInput">File Input</label>
-      <input type="file" id="fileInput" @change="handleFileUpload" />
-      <span v-if="errors.fileInput">{{ errors.fileInput }}</span>
-    </div>
-
-    <!-- Submit Button -->
-    <button type="submit">Submit</button>
-  </form>
-</template>
-
-<script setup>
-import { reactive } from 'vue';
-import {
-  generateRules,
-  validateForm,
-  validateFormField,
-  getErrors
-} from '~/Utils/validation';
-
-const formData = reactive({
-  textInput: '',
-  emailInput: '',
-  urlInput: '',
-  phoneInput: '',
-  numberInput: '',
-  selectInput: '',
-  checkboxInput: false,
-  radioInput: '',
-  fileInput: null
+const VV = new VValidate({
+  lang: 'it',
+  extraMessages: extraMessages,
+  customValidators: customValidators,
+  customAsyncValidators: customAsyncValidators
 });
 
-const validationRules = {
-  textInput: generateRules({ string: true, min: 3, required: true }),
-  emailInput: generateRules({ email: true, required: true }),
-  urlInput: generateRules({ url: true }),
-  phoneInput: generateRules({ phone: true }),
-  numberInput: generateRules({ number: true, required: true }),
-  selectInput: generateRules({ one_of: ['option2'], required: true }),
-  checkboxInput: generateRules({ is: true }),
-  radioInput: generateRules({ one_of: ['option1'], required: true }),
-  fileInput: generateRules({ image: true, size: 1024 })
+// Esempio di utilizzo callback
+VV.setCallbacks({
+  onValidateStart: (fieldName: string) => console.log(`onValidateStart: Inizio validazione campo: ${fieldName}`),
+  onValidateEnd: (fieldName: string) => console.log(`onValidateEnd: Fine validazione campo: ${fieldName}`),
+  onFieldValid: (fieldName: string) => console.log(`onFieldValid: Campo valido: ${fieldName}`),
+  onFieldInvalid: (fieldName: string, message: string) => console.log(`onFieldInvalid: Campo non valido: ${fieldName}. Messaggio: ${message}`)
+});
+
+
+const formData = ref({
+  emailField: '',
+  urlField: '',
+  phoneField: '',
+  username: '',
+  customField: '',
+  isTestAsyncField: ''
+});
+
+const rules = {
+  emailField: VV.generateRules({ email: true }),
+  urlField: VV.generateRules({ url: true }),
+  phoneField: VV.generateRules({ phone: true }),
+  customField: VV.generateRules({ custom_validator: true }),
+  username: VV.generateRules({ required: true }),
+  isTestAsyncField: VV.generateRules({ required: true }),
+};
+const asyncRules = {
+  username: VV.generateAsyncRules({ uniqueUsername: formData.value.username }),
+  isTestAsyncField: VV.generateAsyncRules({ is_test_async: true })
 };
 
-const errors = reactive(getErrors());
+const validateField = async (fieldName: string) => await VV.validateFormField(fieldName, formData.value);
 
-const validate = (fieldName) => {
-  validateFormField(fieldName, formData, validationRules);
-};
+const isFormValid = ref(false);
 
-const handleFileUpload = (event) => {
-  formData.fileInput = event.target.files[0];
-  validate('fileInput');
-};
-
-const submitForm = () => {
-  if (validateForm(formData, validationRules)) {
-    alert('Form is valid!');
-    // Submit form data
+const handleSubmit = async (event: Event) => {
+  event.preventDefault();
+  await VV.validateForm(formData.value)
+  isFormValid.value = VV.getErrors() && Object.keys(VV.getErrors()).length === 0;
+  if(isFormValid.value){
+    // Il modulo è valido, procedi con l'invio
   } else {
-    alert('Form has errors.');
+    VV.setFocusToFirstInvalidField(); // Imposta il focus sul primo campo con errore
   }
 };
+
+onMounted(()=>{
+  VV.setValidationRules(rules, asyncRules);
+})
+
 </script>
 
-<style scoped>
-form div {
-  margin-bottom: 1em;
-}
-span {
+<template>
+  <form @submit.prevent="handleSubmit">
+
+    <!-- Email Field -->
+    <div>
+      <label for="emailField">Email Field:</label>
+      <input type="text" id="emailField" v-model="formData.emailField" @keyup="validateField('emailField')" placeholder="Email Field">
+      <label v-if="VV.hasError('emailField')" class="error">{{ VV.getError('emailField') }}</label>
+    </div>
+
+    <!-- URL Field -->
+    <div>
+      <label for="urlField">URL Field:</label>
+      <input type="text" id="urlField" v-model="formData.urlField" @keyup="validateField('urlField')" placeholder="URL Field">
+      <label v-if="VV.hasError('urlField')" class="error">{{ VV.getError('urlField') }}</label>
+    </div>
+
+    <!-- Phone Field -->
+    <div>
+      <label for="phoneField">Phone Field:</label>
+      <input type="text" id="phoneField" v-model="formData.phoneField" @keyup="validateField('phoneField')" placeholder="Phone Field">
+      <label v-if="VV.hasError('phoneField')" class="error">{{ VV.getError('phoneField') }}</label>
+    </div>
+
+    <!-- username -->
+    <div>
+      <label for="username">Username univoco:</label>
+      <input type="text" id="username" v-model="formData.username" @keyup="validateField('username')" placeholder="Username univoco">
+      <label v-if="VV.hasError('username')" class="error">{{ VV.getError('username') }}</label>
+    </div>
+
+    <!-- Custom Field -->
+    <div>
+      <label for="customField">Custom Field:</label>
+      <input type="text" id="customField" v-model="formData.customField" @keyup="validateField('customField')" placeholder="Custom Field">
+      <label v-if="VV.hasError('customField')" class="error">{{ VV.getError('customField') }}</label>
+    </div>
+
+    <!-- isTestAsyncField -->
+    <div>
+      <label for="isTestAsyncField">Test Async:</label>
+      <input type="text" id="isTestAsyncField" v-model="formData.isTestAsyncField" @keyup="validateField('isTestAsyncField')" placeholder="Test Async">
+      <label v-if="VV.hasError('isTestAsyncField')" class="error">{{ VV.getError('isTestAsyncField') }}</label>
+    </div>
+
+    <button type="submit">Valida form</button>
+  </form>
+
+  <div v-if="isFormValid">Form valido!</div>
+  <div v-else>Form non valido!</div>
+</template>
+
+<style>
+.error {
   color: red;
 }
 </style>
