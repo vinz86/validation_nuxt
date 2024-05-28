@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import VValidate from '~/Utils/DSValidate/src/VValidate';
+import VValidate from 'v-validate';
 
 const extraMessages = {
   is_test_async: 'Questo campo deve avere il valore "async"',
